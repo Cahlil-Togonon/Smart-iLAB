@@ -17,6 +17,9 @@ substitutions:
   api_key: "0I1/Tijd/OAC+3SpLAcUk/Y6D5j2Hb9N2Ukfadg3cnk="
   ap_wifi_pwd: !secret ap_password
 
+packages:
+  device_base: !include ./packages/device_base_esp32.yaml
+
 web_server:
   port: 80
 
