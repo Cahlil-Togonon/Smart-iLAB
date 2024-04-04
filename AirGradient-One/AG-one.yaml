@@ -61,3 +61,22 @@ binary_sensor:
   - id: !extend config_button
     pin:
       ignore_strapping_warning: true  # Acknowledging that this is a strapping pin and should not have external pullup/down resistors  https://esphome.io/guides/faq.html#why-am-i-getting-a-warning-about-strapping-pins
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    id: wifi_signal_db
+    update_interval: 60s
+    entity_category: diagnostic
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+      entity_category: diagnostic
+    ssid:
+      name: "Connected SSID"
+      entity_category: diagnostic
+    mac_address:
+      name: "Mac Address"
+      entity_category: diagnostic
