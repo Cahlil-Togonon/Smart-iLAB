@@ -1,0 +1,32 @@
+substitutions:
+  log_level: none
+  log_baud_rate: '115200'
+  wifi_ssid: !secret wifi_ssid
+  wifi_password: !secret wifi_password
+  ip_subnet: !secret ip_subnet
+  ip_gateway: !secret ip_gateway
+  flash_write_interval: 10min
+
+esphome:
+  name: ${device_id}
+  build_path: ./build/${device_id}
+
+${platform}:
+  board: ${board}
+
+preferences:
+  flash_write_interval: ${flash_write_interval}
+
+packages:
+  wifi:             !include wifi/wifi.yaml
+  api:              !include api/api.yaml
+  ota:              !include ota/ota.yaml
+  logger:           !include logger/logger.yaml
+  status_sensor:    !include binary_sensor/status.yaml
+  uptime_sensor:    !include sensor/uptime.yaml
+  wifi_sensor:      !include sensor/wifi.yaml
+  restart_button:   !include button/restart.yaml
+  version_sensor:   !include text_sensor/version.yaml
+  wifi_info_sensor: !include text_sensor/wifi_info.yaml
+  time:             !include time/time.yaml
+

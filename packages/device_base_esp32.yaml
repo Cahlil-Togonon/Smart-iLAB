@@ -1,0 +1,10 @@
+substitutions:
+  platform: esp32
+  framework_type: esp-idf
+
+esp32:
+  framework:
+    type: ${framework_type}
+
+packages:
+  base:   !include device_base.yaml
