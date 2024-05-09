@@ -1,32 +1,40 @@
-substitutions:
-  log_level: none
-  log_baud_rate: '115200'
-  wifi_ssid: !secret wifi_ssid
-  wifi_password: !secret wifi_password
-  ip_subnet: !secret ip_subnet
-  ip_gateway: !secret ip_gateway
+substitutions: # generic substitutions
+  repository: github://Cahlil-Togonon/Smart-iLAB
+  
+  dns_domain: ".local"                            # Define the domain for this device. example: .local (device will appear as xxx-xxxxx.local in DNS/DHCP logs)
+  wifi_fast_connect: "false"                      # Enables faster network connections, with last connected SSID being connected to and no full scan for SSID being undertaken
+  wifi_ssid_1:          !secret wifi_ssid
+  wifi_ssid_1_password: !secret wifi_password
+  wifi_ssid_2:          !secret uly_wifi_ssid
+  wifi_ssid_2_password: !secret uly_wifi_password
+  gateway:              !secret gateway           # Set this to the IP address of the router. Often ends with .1
+  subnet:               !secret subnet            # The subnet of the network
+  ap_timeout: 1min
+  power_save_mode: none
+  reboot_timeout: 2min
   flash_write_interval: 10min
 
-esphome:
-  name: ${device_id}
-  build_path: ./build/${device_id}
+  timezone: ""                                    # Set timezone of the device. Can be entered in unix Country/Area format (i.e. "Australia/Sydney")
+  esp_wifi_scan_internal: true                    # set to false to show the full wifi scan results
 
-${platform}:
-  board: ${board}
+# esphome:
+#   name: ${device_id}
+#   build_path: ./build/${device_id}
 
-preferences:
-  flash_write_interval: ${flash_write_interval}
+# ${platform}:
+#   board: ${board}
+
+# preferences:
+#   flash_write_interval: ${flash_write_interval}
 
 packages:
-  wifi:             !include wifi/wifi.yaml
-  api:              !include api/api.yaml
-  ota:              !include ota/ota.yaml
-  logger:           !include logger/logger.yaml
-  status_sensor:    !include binary_sensor/status.yaml
-  uptime_sensor:    !include sensor/uptime.yaml
-  wifi_sensor:      !include sensor/wifi.yaml
-  restart_button:   !include button/restart.yaml
-  version_sensor:   !include text_sensor/version.yaml
-  wifi_info_sensor: !include text_sensor/wifi_info.yaml
-  time:             !include time/time.yaml
-
+  wifi:             ${repository}/packages/base_packages/wifi.yaml
+  api:              ${repository}/packages/base_packages/api.yaml
+  ota:              ${repository}/packages/base_packages/ota.yaml
+  logger:           ${repository}/packages/base_packages/logger.yaml
+  web_server:       ${repository}/packages/base_packages/web_server.yaml
+  binary_sensor:    ${repository}/packages/base_packages/binary_sensor.yaml
+  sensor:           ${repository}/packages/base_packages/sensor.yaml
+  button:           ${repository}/packages/base_packages/button.yaml
+  text_sensor:      ${repository}/packages/base_packages/text_sensor.yaml
+  time:             ${repository}/packages/base_packages/time.yaml

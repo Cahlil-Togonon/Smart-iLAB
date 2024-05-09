@@ -1,0 +1,630 @@
+esphome:
+  name: emporia-vue2-25
+
+# mqtt:
+#   broker: 10.158.71.11
+#   username: "admin"
+#   password: "++adminsmartilab2023!!"
+
+# interval:
+#   - interval: 5s
+#     then:
+#       - mqtt.publish:
+#           topic: emporia/something
+#           payload: "Something happened!"
+
+external_components:
+  - source: github://emporia-vue-local/esphome@dev
+    components: [ emporia_vue ]
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+    version: recommended
+
+logger:
+  logs:
+    sensor: INFO
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "LAD27rXNFIKVqXFDv+3YT5DkmbkyNMYx9ypCKbgCwdA="
+
+  services:
+    - service: play_rtttl
+      variables:
+        song_str: string
+      then:
+        - rtttl.play:
+            rtttl: !lambda 'return song_str;'
+
+ota:
+  password: !secret ota_password
+
+web_server:
+  port: 80
+
+wifi:
+  networks:
+  - ssid: !secret uly_wifi_ssid
+    password: !secret uly_wifi_password
+    priority: 1.0
+  - ssid: !secret wifi_ssid
+    password: !secret wifi_password
+    priority: 2.0
+
+  manual_ip:
+    # Set this to the IP of the ESP
+    static_ip: 10.158.71.55
+    # Set this to the IP address of the router. Often ends with .1
+    gateway: 10.158.71.1
+    # The subnet of the network. 255.255.255.0 works for most home networks.
+    subnet: 255.255.255.0
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Vue2 25 Fallback Hotspot"
+    password: !secret wifi_password
+    ap_timeout: 1min
+
+  power_save_mode: none
+  
+  reboot_timeout: 2min
+
+captive_portal:
+  
+
+preferences:
+  # please also make sure `restore: false` is set on all `platform: total_daily_energy`
+  # sensors below.
+  flash_write_interval: "15m"
+
+output:
+  - platform: ledc
+    pin: GPIO12
+    id: buzzer
+  - platform: gpio
+    pin: GPIO27
+    id: buzzer_gnd
+
+rtttl:
+  output: buzzer
+  on_finished_playback:
+    - logger.log: 'Song ended!'
+
+button:
+  - platform: template
+    name: "Two Beeps"
+    on_press:
+      - rtttl.play: "two short:d=4,o=5,b=100:16e6,16e6"
+
+light:
+  - platform: status_led
+    name: "D3_LED"
+    pin: 23
+    restore_mode: ALWAYS_ON
+    entity_category: config
+
+i2c:
+  sda: 21
+  scl: 22
+  scan: false
+  frequency: 200kHz  # recommended range is 50-200kHz
+  id: i2c_a
+
+time:
+  - platform: sntp
+    id: my_time
+    timezone: Asia/Manila
+
+debug:
+  update_interval: 120s
+
+text_sensor:
+  - platform: debug
+    reset_reason:
+      name: "Reset Reason"
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+      entity_category: diagnostic
+    ssid:
+      name: "Connected SSID"
+      entity_category: diagnostic
+    mac_address:
+      name: "Mac Address"
+      entity_category: diagnostic
+  - platform: wifi_info
+    # ip_address:
+    #   name: ESP IP Address
+      # address_0:
+      #   name: ESP IP Address 0
+      # address_1:
+      #   name: ESP IP Address 1
+      # address_2:
+      #   name: ESP IP Address 2
+      # address_3:
+      #   name: ESP IP Address 3
+      # address_4:
+      #   name: ESP IP Address 4
+    ssid:
+      name: ESP Connected SSID
+    bssid:
+      name: ESP Connected BSSID
+    mac_address:
+      name: ESP Mac Wifi Address
+    scan_results:
+      name: ESP Latest Scan Results
+    dns_address:
+      name: ESP DNS Address
+
+# these are called references in YAML. They allow you to reuse
+# this configuration in each sensor, while only defining it once
+.defaultfilters:
+  - &moving_avg
+    # we capture a new sample every 0.24 seconds, so the time can
+    # be calculated from the number of samples as n * 0.24.
+    sliding_window_moving_average:
+      # we average over the past 2.88 seconds
+      window_size: 12
+      # we push a new value every 1.44 seconds
+      send_every: 6
+  - &invert
+    # invert and filter out any values below 0.
+    lambda: 'return max(-x, 0.0f);'
+  - &pos
+    # filter out any values below 0.
+    lambda: 'return max(x, 0.0f);'
+  - &abs
+    # take the absolute value of the value
+    lambda: 'return abs(x);'
+  # Reduce noise in the power class
+  - &power_max
+    or:
+      - delta: 5
+      - throttle: 60s
+  - &power_min
+    throttle: 3s
+  - &throttle_energy
+    or:
+      - delta: 10
+      - throttle: 60s
+
+sensor:
+  - platform: emporia_vue
+    i2c_id: i2c_a
+    phases:
+      - id: phase_a  # Verify that this specific phase/leg is connected to correct input wire color on device listed below
+        input: BLACK  # Vue device wire color
+        calibration: 0.022  # 0.022 is used as the default as starting point but may need adjusted to ensure accuracy
+        # To calculate new calibration value use the formula  *  / 
+        voltage:
+          name: "Phase A Voltage"
+          id: phase_a_voltage
+          filters: [*moving_avg, *pos]
+        frequency:
+          name: "Phase A Frequency"
+          id: phase_a_phase_angle
+          filters: [*moving_avg, *pos]
+      - id: phase_b  # Verify that this specific phase/leg is connected to correct input wire color on device listed below
+        input: RED  # Vue device wire color
+        calibration: 0.022  # 0.022 is used as the default as starting point but may need adjusted to ensure accuracy
+        # To calculate new calibration value use the formula  *  / 
+        voltage:
+          name: "Phase B Voltage"
+          id: phase_b_voltage
+          filters: [*moving_avg, *pos]
+        phase_angle:
+          name: "Phase B Phase Angle"
+          id: phase_b_phase_angle
+          filters: [*moving_avg, *pos]
+      - id: phase_c  # Verify that this specific phase/leg is connected to correct input wire color on device listed below
+        input: BLUE  # Vue device wire color
+        calibration: 0.022  # 0.022 is used as the default as starting point but may need adjusted to ensure accuracy
+        # To calculate new calibration value use the formula  *  / 
+        voltage:
+          name: "Phase C Voltage"
+          id: phase_c_voltage
+          filters: [*moving_avg, *pos]
+        phase_angle:
+          name: "Phase C Phase Angle"
+          id: phase_c_phase_angle
+          filters: [*moving_avg, *pos]
+    ct_clamps:
+      - phase_id: phase_a
+        input: "A"  # Verify the CT going to this device input also matches the phase/leg
+        power:
+          name: "Phase A Power"
+          id: phase_a_power
+          device_class: power
+          filters: [*moving_avg]
+        current:
+          name: "Phase A Current"
+          id: phase_a_current
+          device_class: current
+          filters: [*moving_avg]
+      - phase_id: phase_b
+        input: "B"  # Verify the CT going to this device input also matches the phase/leg
+        power:
+          name: "Phase B Power"
+          id: phase_b_power
+          device_class: power
+          filters: [*moving_avg]
+        current:
+          name: "Phase B Current"
+          id: phase_b_current
+          device_class: current
+          filters: [*moving_avg]
+      - phase_id: phase_c
+        input: "C"  # Verify the CT going to this device input also matches the phase/leg
+        power:
+          name: "Phase C Power"
+          id: phase_c_power
+          device_class: power
+          filters: [*moving_avg]
+        current:
+          name: "Phase C Current"
+          id: phase_c_current
+          device_class: current
+          filters: [*moving_avg]
+      # Pay close attention to set the phase_id for each breaker by matching it to the phase/leg it connects to in the panel
+      # Some circuits are commented out because they don't have a CT connected yet
+      - { phase_id: phase_a, input:  "1", power: { name: "#1 Power a", id:  cir1a, internal: true, filters: [ multiply: 1.0 ] } , current: { name: "#1 Current", id:  cur1, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_b, input:  "1", power: { name: "#1 Power b", id:  cir1b, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_c, input:  "1", power: { name: "#1 Power c", id:  cir1c, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_a, input:  "2", power: { name: "#2 Power a", id:  cir2a, internal: true, filters: [ multiply: 1.0 ] } , current: { name: "#2 Current", id:  cur2, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_b, input:  "2", power: { name: "#2 Power b", id:  cir2b, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_c, input:  "2", power: { name: "#2 Power c", id:  cir2c, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_a, input:  "3", power: { name: "#3 Power a", id:  cir3a, internal: true, filters: [ multiply: 1.0 ] } , current: { name: "#3 Current", id:  cur3, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_b, input:  "3", power: { name: "#3 Power b", id:  cir3b, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_c, input:  "3", power: { name: "#3 Power c", id:  cir3c, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_a, input:  "4", power: { name: "#4 Power a", id:  cir4a, internal: true, filters: [ multiply: 1.0 ] } , current: { name: "#4 Current", id:  cur4, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_b, input:  "4", power: { name: "#4 Power b", id:  cir4b, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_c, input:  "4", power: { name: "#4 Power c", id:  cir4c, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_a, input:  "5", power: { name: "#5 Power a", id:  cir5a, internal: true, filters: [ multiply: 1.0 ] } , current: { name: "#5 Current", id:  cur5, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_b, input:  "5", power: { name: "#5 Power b", id:  cir5b, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_c, input:  "5", power: { name: "#5 Power c", id:  cir5c, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_a, input:  "6", power: { name: "#6 Power a", id:  cir6a, internal: true, filters: [ multiply: 1.0 ] } , current: { name: "#6 Current", id:  cur6, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_b, input:  "6", power: { name: "#6 Power b", id:  cir6b, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_c, input:  "6", power: { name: "#6 Power c", id:  cir6c, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_a, input:  "7", power: { name: "#7 Power a", id:  cir7a, internal: true, filters: [ multiply: 1.0 ] } , current: { name: "#7 Current", id:  cur7, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_b, input:  "7", power: { name: "#7 Power b", id:  cir7b, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_c, input:  "7", power: { name: "#7 Power c", id:  cir7c, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_a, input:  "8", power: { name: "#8 Power a", id:  cir8a, internal: true, filters: [ multiply: 1.0 ] } , current: { name: "#8 Current", id:  cur8, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_b, input:  "8", power: { name: "#8 Power b", id:  cir8b, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_c, input:  "8", power: { name: "#8 Power c", id:  cir8c, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_a, input:  "9", power: { name: "#9 Power a", id:  cir9a, internal: true, filters: [ multiply: 1.0 ] } , current: { name: "#9 Current", id:  cur9, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_b, input:  "9", power: { name: "#9 Power b", id:  cir9b, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_c, input:  "9", power: { name: "#9 Power c", id:  cir9c, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_a, input:  "10", power: { name: "#10 Power a", id:  cir10a, internal: true, filters: [ multiply: 1.0 ] } , current: { name: "#10 Current", id:  cur10, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_b, input:  "10", power: { name: "#10 Power b", id:  cir10b, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_c, input:  "10", power: { name: "#10 Power c", id:  cir10c, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_a, input:  "11", power: { name: "#11 Power a", id:  cir11a, internal: true, filters: [ multiply: 1.0 ] } , current: { name: "#11 Current", id:  cur11, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_b, input:  "11", power: { name: "#11 Power b", id:  cir11b, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_c, input:  "11", power: { name: "#11 Power c", id:  cir11c, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_a, input:  "12", power: { name: "#12 Power a", id:  cir12a, internal: true, filters: [ multiply: 1.0 ] } , current: { name: "#12 Current", id:  cur12, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_b, input:  "12", power: { name: "#12 Power b", id:  cir12b, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_c, input:  "12", power: { name: "#12 Power c", id:  cir12c, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_a, input:  "13", power: { name: "#13 Power a", id:  cir13a, internal: true, filters: [ multiply: 1.0 ] } , current: { name: "#13 Current", id:  cur13, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_b, input:  "13", power: { name: "#13 Power b", id:  cir13b, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_c, input:  "13", power: { name: "#13 Power c", id:  cir13c, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_a, input:  "14", power: { name: "#14 Power a", id:  cir14a, internal: true, filters: [ multiply: 1.0 ] } , current: { name: "#14 Current", id:  cur14, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_b, input:  "14", power: { name: "#14 Power b", id:  cir14b, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_c, input:  "14", power: { name: "#14 Power c", id:  cir14c, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_a, input:  "15", power: { name: "#15 Power a", id:  cir15a, internal: true, filters: [ multiply: 1.0 ] } , current: { name: "#15 Current", id:  cur15, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_b, input:  "15", power: { name: "#15 Power b", id:  cir15b, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_c, input:  "15", power: { name: "#15 Power c", id:  cir15c, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_a, input:  "16", power: { name: "#16 Power a", id:  cir16a, internal: true, filters: [ multiply: 1.0 ] } , current: { name: "#16 Current", id:  cur16, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_b, input:  "16", power: { name: "#16 Power b", id:  cir16b, internal: true, filters: [ multiply: 1.0 ] } }
+      - { phase_id: phase_c, input:  "16", power: { name: "#16 Power c", id:  cir16c, internal: true, filters: [ multiply: 1.0 ] } }
+    on_update:
+      then:
+        - component.update: total_power
+        - component.update: balance_power
+        - component.update: phase_ab_mag
+        - component.update: phase_bc_mag
+        - component.update: phase_ac_mag
+        - component.update: cir1_b
+        - component.update: cir2_b
+        - component.update: cir3_b
+        - component.update: cir4_b
+        - component.update: cir5_b
+        - component.update: cir6_b
+        - component.update: cir7_b
+        - component.update: cir8_b
+        - component.update: cir9_b
+        - component.update: cir10_b
+        - component.update: cir11_b
+        - component.update: cir12_b
+        - component.update: cir13_b
+        - component.update: cir14_b
+        - component.update: cir15_b
+        - component.update: cir16_b
+        - component.update: cir1_
+        - component.update: cir2_
+        - component.update: cir3_
+        - component.update: cir4_
+        - component.update: cir5_
+        - component.update: cir6_
+        - component.update: cir7_
+        - component.update: cir8_
+        - component.update: cir9_
+        - component.update: cir10_
+        - component.update: cir11_
+        - component.update: cir12_
+        - component.update: cir13_
+        - component.update: cir14_
+        - component.update: cir15_
+        - component.update: cir16_
+  # The copy sensors filter and send the power state to HA
+  - { platform: copy, name: "Phase A Power", source_id: phase_a_power, filters: [ *power_min, *power_max ] }
+  - { platform: copy, name: "Phase B Power", source_id: phase_b_power, filters: [ *power_min, *power_max ] }
+  - { platform: copy, name: "Phase C Power", source_id: phase_c_power, filters: [ *power_min, *power_max ] }
+
+  - { platform: copy, name: "Phase A Current", source_id: phase_a_current, filters: [ *power_min ] }
+  - { platform: copy, name: "Phase B Current", source_id: phase_b_current, filters: [ *power_min ] }
+  - { platform: copy, name: "Phase C Current", source_id: phase_c_current, filters: [ *power_min ] }
+
+  - { platform: copy, name: "Phase AB Magnitude", source_id: phase_ab_mag }
+  - { platform: copy, name: "Phase BC Magnitude", source_id: phase_bc_mag }
+  - { platform: copy, name: "Phase AC Magnitude", source_id: phase_ac_mag }
+
+  - { platform: copy, name: "Total Power", source_id: total_power, filters: [ *power_min, *power_max ] }
+  - { platform: copy, name: "Balance Power", source_id: balance_power, filters: [ *power_min, *power_max ] }
+
+  # - { platform: copy, id:  cir1a_, source_id: cir1a, filters: [ *power_min, *power_max ], name: "#1 power a" }
+  # - { platform: copy, id:  cir1b_, source_id: cir1b, filters: [ *power_min, *power_max ], name: "#1 power b" }
+  # - { platform: copy, id:  cir1c_, source_id: cir1c, filters: [ *power_min, *power_max ], name: "#1 power c" }
+  # - { platform: copy, id:  cir2a_, source_id: cir2a, filters: [ *power_min, *power_max ], name: "#2 power a" }
+  # - { platform: copy, id:  cir2b_, source_id: cir2b, filters: [ *power_min, *power_max ], name: "#2 power b" }
+  # - { platform: copy, id:  cir2c_, source_id: cir2c, filters: [ *power_min, *power_max ], name: "#2 power c" }
+  # - { platform: copy, id:  cir3a_, source_id: cir3a, filters: [ *power_min, *power_max ], name: "#3 power a" }
+  # - { platform: copy, id:  cir3b_, source_id: cir3b, filters: [ *power_min, *power_max ], name: "#3 power b" }
+  # - { platform: copy, id:  cir3c_, source_id: cir3c, filters: [ *power_min, *power_max ], name: "#3 power c" }
+  # - { platform: copy, id:  cir4a_, source_id: cir4a, filters: [ *power_min, *power_max ], name: "#4 power a" }
+  # - { platform: copy, id:  cir4b_, source_id: cir4b, filters: [ *power_min, *power_max ], name: "#4 power b" }
+  # - { platform: copy, id:  cir4c_, source_id: cir4c, filters: [ *power_min, *power_max ], name: "#4 power c" }
+  # - { platform: copy, id:  cir5a_, source_id: cir5a, filters: [ *power_min, *power_max ], name: "#5 power a" }
+  # - { platform: copy, id:  cir5b_, source_id: cir5b, filters: [ *power_min, *power_max ], name: "#5 power b" }
+  # - { platform: copy, id:  cir5c_, source_id: cir5c, filters: [ *power_min, *power_max ], name: "#5 power c" }
+  # - { platform: copy, id:  cir6a_, source_id: cir6a, filters: [ *power_min, *power_max ], name: "#6 power a" }
+  # - { platform: copy, id:  cir6b_, source_id: cir6b, filters: [ *power_min, *power_max ], name: "#6 power b" }
+  # - { platform: copy, id:  cir6c_, source_id: cir6c, filters: [ *power_min, *power_max ], name: "#6 power c" }
+  # - { platform: copy, id:  cir7a_, source_id: cir7a, filters: [ *power_min, *power_max ], name: "#7 power a" }
+  # - { platform: copy, id:  cir7b_, source_id: cir7b, filters: [ *power_min, *power_max ], name: "#7 power b" }
+  # - { platform: copy, id:  cir7c_, source_id: cir7c, filters: [ *power_min, *power_max ], name: "#7 power c" }
+  # - { platform: copy, id:  cir8a_, source_id: cir8a, filters: [ *power_min, *power_max ], name: "#8 power a" }
+  # - { platform: copy, id:  cir8b_, source_id: cir8b, filters: [ *power_min, *power_max ], name: "#8 power b" }
+  # - { platform: copy, id:  cir8c_, source_id: cir8c, filters: [ *power_min, *power_max ], name: "#8 power c" }
+  # - { platform: copy, id:  cir9a_, source_id: cir9a, filters: [ *power_min, *power_max ], name: "#9 power a" }
+  # - { platform: copy, id:  cir9b_, source_id: cir9b, filters: [ *power_min, *power_max ], name: "#9 power b" }
+  # - { platform: copy, id:  cir9c_, source_id: cir9c, filters: [ *power_min, *power_max ], name: "#9 power c" }
+  # - { platform: copy, id:  cir10a_, source_id: cir10a, filters: [ *power_min, *power_max ], name: "#10 power a" }
+  # - { platform: copy, id:  cir10b_, source_id: cir10b, filters: [ *power_min, *power_max ], name: "#10 power b" }
+  # - { platform: copy, id:  cir10c_, source_id: cir10c, filters: [ *power_min, *power_max ], name: "#10 power c" }
+  # - { platform: copy, id:  cir11a_, source_id: cir11a, filters: [ *power_min, *power_max ], name: "#11 power a" }
+  # - { platform: copy, id:  cir11b_, source_id: cir11b, filters: [ *power_min, *power_max ], name: "#11 power b" }
+  # - { platform: copy, id:  cir11c_, source_id: cir11c, filters: [ *power_min, *power_max ], name: "#11 power c" }
+  # - { platform: copy, id:  cir12a_, source_id: cir12a, filters: [ *power_min, *power_max ], name: "#12 power a" }
+  # - { platform: copy, id:  cir12b_, source_id: cir12b, filters: [ *power_min, *power_max ], name: "#12 power b" }
+  # - { platform: copy, id:  cir12c_, source_id: cir12c, filters: [ *power_min, *power_max ], name: "#12 power c" }
+  # - { platform: copy, id:  cir13a_, source_id: cir13a, filters: [ *power_min, *power_max ], name: "#13 power a" }
+  # - { platform: copy, id:  cir13b_, source_id: cir13b, filters: [ *power_min, *power_max ], name: "#13 power b" }
+  # - { platform: copy, id:  cir13c_, source_id: cir13c, filters: [ *power_min, *power_max ], name: "#13 power c" }
+  # - { platform: copy, id:  cir14a_, source_id: cir14a, filters: [ *power_min, *power_max ], name: "#14 power a" }
+  # - { platform: copy, id:  cir14b_, source_id: cir14b, filters: [ *power_min, *power_max ], name: "#14 power b" }
+  # - { platform: copy, id:  cir14c_, source_id: cir14c, filters: [ *power_min, *power_max ], name: "#14 power c" }
+  # - { platform: copy, id:  cir15a_, source_id: cir15a, filters: [ *power_min, *power_max ], name: "#15 power a" }
+  # - { platform: copy, id:  cir15b_, source_id: cir15b, filters: [ *power_min, *power_max ], name: "#15 power b" }
+  # - { platform: copy, id:  cir15c_, source_id: cir15c, filters: [ *power_min, *power_max ], name: "#15 power c" }
+  # - { platform: copy, id:  cir16a_, source_id: cir16a, filters: [ *power_min, *power_max ], name: "#16 power a" }
+  # - { platform: copy, id:  cir16b_, source_id: cir16b, filters: [ *power_min, *power_max ], name: "#16 power b" }
+  # - { platform: copy, id:  cir16c_, source_id: cir16c, filters: [ *power_min, *power_max ], name: "#16 power c" }
+
+  - { platform: template, id:  cir1_, name: "#1 power A-B", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(cir1a).state - id(cir1b).state;, device_class: power, unit_of_measurement: "W"}
+  - { platform: template, id:  cir2_, name: "#2 power A-C", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(cir2a).state - id(cir2c).state;, device_class: power, unit_of_measurement: "W"}
+  - { platform: template, id:  cir3_, name: "#3 power A-B", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(cir3a).state - id(cir3b).state;, device_class: power, unit_of_measurement: "W"}
+  - { platform: template, id:  cir4_, name: "#4 power A-B", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(cir4a).state - id(cir4b).state;, device_class: power, unit_of_measurement: "W"}
+  - { platform: template, id:  cir5_, name: "#5 power B-C", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(cir5b).state - id(cir5c).state;, device_class: power, unit_of_measurement: "W"}
+  - { platform: template, id:  cir6_, name: "#6 power A-C", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(cir6a).state - id(cir6c).state;, device_class: power, unit_of_measurement: "W"}
+  - { platform: template, id:  cir7_, name: "#7 power A-B", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(cir7a).state - id(cir7b).state;, device_class: power, unit_of_measurement: "W"}
+  - { platform: template, id:  cir8_, name: "#8 power A-B", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(cir8a).state - id(cir8b).state;, device_class: power, unit_of_measurement: "W"}
+  - { platform: template, id:  cir9_, name: "#9 power A-C", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(cir9a).state - id(cir9c).state;, device_class: power, unit_of_measurement: "W"}
+  - { platform: template, id:  cir10_, name: "#10 power B-C", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(cir10b).state - id(cir10c).state;, device_class: power, unit_of_measurement: "W"}
+  - { platform: template, id:  cir11_, name: "#11 power A-B", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(cir11a).state - id(cir11b).state;, device_class: power, unit_of_measurement: "W"}
+  - { platform: template, id:  cir12_, name: "#12 power B-C", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(cir12b).state - id(cir12c).state;, device_class: power, unit_of_measurement: "W"}
+  - { platform: template, id:  cir13_, name: "#13 power A-C", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(cir13a).state - id(cir13c).state;, device_class: power, unit_of_measurement: "W"}
+  - { platform: template, id:  cir14_, name: "#14 power A-B", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(cir14a).state - id(cir14b).state;, device_class: power, unit_of_measurement: "W"}
+  - { platform: template, id:  cir15_, name: "#15 power B-C", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(cir15b).state - id(cir15c).state;, device_class: power, unit_of_measurement: "W"}
+  - { platform: template, id:  cir16_, name: "#16 power B-C", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(cir16b).state - id(cir16c).state;, device_class: power, unit_of_measurement: "W"}
+
+  - { platform: template, id:  cir1_b, name: "#1 power", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(phase_ab_mag).state * id(cur1).state;, device_class: power, unit_of_measurement: "W"}
+  - { platform: template, id:  cir2_b, name: "#2 power", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(phase_ac_mag).state * id(cur2).state;, device_class: power, unit_of_measurement: "W" }
+  - { platform: template, id:  cir3_b, name: "#3 power", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(phase_ab_mag).state * id(cur3).state;, device_class: power, unit_of_measurement: "W" }
+  - { platform: template, id:  cir4_b, name: "#4 power", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(phase_ab_mag).state * id(cur4).state;, device_class: power, unit_of_measurement: "W" }
+  - { platform: template, id:  cir5_b, name: "#5 power", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(phase_bc_mag).state * id(cur5).state;, device_class: power, unit_of_measurement: "W" }
+  - { platform: template, id:  cir6_b, name: "#6 power", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(phase_ac_mag).state * id(cur6).state;, device_class: power, unit_of_measurement: "W" }
+  - { platform: template, id:  cir7_b, name: "#7 power", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(phase_ab_mag).state * id(cur7).state;, device_class: power, unit_of_measurement: "W" }
+  - { platform: template, id:  cir8_b, name: "#8 power", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(phase_ab_mag).state * id(cur8).state;, device_class: power, unit_of_measurement: "W" }
+  - { platform: template, id:  cir9_b, name: "#9 power", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(phase_bc_mag).state * id(cur9).state;, device_class: power, unit_of_measurement: "W" }
+  - { platform: template, id:  cir10_b, name: "#10 power", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(phase_bc_mag).state * id(cur10).state;, device_class: power, unit_of_measurement: "W" }
+  - { platform: template, id:  cir11_b, name: "#11 power", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(phase_ab_mag).state * id(cur11).state;, device_class: power, unit_of_measurement: "W" }
+  - { platform: template, id:  cir12_b, name: "#12 power", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(phase_bc_mag).state * id(cur12).state;, device_class: power, unit_of_measurement: "W" }
+  - { platform: template, id:  cir13_b, name: "#13 power", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(phase_ac_mag).state * id(cur13).state;, device_class: power, unit_of_measurement: "W" }
+  - { platform: template, id:  cir14_b, name: "#14 power", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(phase_ab_mag).state * id(cur14).state;, device_class: power, unit_of_measurement: "W" }
+  - { platform: template, id:  cir15_b, name: "#15 power", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(phase_bc_mag).state * id(cur15).state;, device_class: power, unit_of_measurement: "W" }
+  - { platform: template, id:  cir16_b, name: "#16 power", filters: [ *power_min, *power_max, multiply: 1.0 ], lambda: return id(phase_ac_mag).state * id(cur16).state;, device_class: power, unit_of_measurement: "W" }
+
+  - { platform: copy, id:  cur1_b, source_id: cur1, name: "#1 current", filters: [ *power_min ] }
+  - { platform: copy, id:  cur2_b, source_id: cur2, name: "#2 current", filters: [ *power_min ] }
+  - { platform: copy, id:  cur3_b, source_id: cur3, name: "#3 current", filters: [ *power_min ] }
+  - { platform: copy, id:  cur4_b, source_id: cur4, name: "#4 current", filters: [ *power_min ] }
+  - { platform: copy, id:  cur5_b, source_id: cur5, name: "#5 current", filters: [ *power_min ] }
+  - { platform: copy, id:  cur6_b, source_id: cur6, name: "#6 current", filters: [ *power_min ] }
+  - { platform: copy, id:  cur7_b, source_id: cur7, name: "#7 current", filters: [ *power_min ] }
+  - { platform: copy, id:  cur8_b, source_id: cur8, name: "#8 current", filters: [ *power_min ] }
+  - { platform: copy, id:  cur9_b, source_id: cur9, name: "#9 current", filters: [ *power_min ] }
+  - { platform: copy, id:  cur10_b, source_id: cur10, name: "#10 current", filters: [ *power_min ] }
+  - { platform: copy, id:  cur11_b, source_id: cur11, name: "#11 current", filters: [ *power_min ] }
+  - { platform: copy, id:  cur12_b, source_id: cur12, name: "#12 current", filters: [ *power_min ] }
+  - { platform: copy, id:  cur13_b, source_id: cur13, name: "#13 current", filters: [ *power_min ] }
+  - { platform: copy, id:  cur14_b, source_id: cur14, name: "#14 current", filters: [ *power_min ] }
+  - { platform: copy, id:  cur15_b, source_id: cur15, name: "#15 current", filters: [ *power_min ] }
+  - { platform: copy, id:  cur16_b, source_id: cur16, name: "#16 current", filters: [ *power_min ] }
+
+  ##################### Phase AB Delta ########################
+  - platform: template
+    lambda: !lambda |-
+      return id(phase_a_voltage).state * cos(0) - id(phase_b_voltage).state * cos(id(phase_b_phase_angle).state / 180 * 3.1415);
+    id: phase_ab_real
+  
+  - platform: template
+    lambda: !lambda |-
+      return id(phase_a_voltage).state * sin(0) - id(phase_b_voltage).state * sin(id(phase_b_phase_angle).state / 180 * 3.1415);
+    id: phase_ab_img
+  
+  - platform: template
+    lambda: !lambda |-
+      return sqrt( pow(id(phase_ab_real).state, 2) + pow(id(phase_ab_img).state, 2) );
+    id: phase_ab_mag
+
+  ##################### Phase BC Delta ########################
+  - platform: template
+    lambda: !lambda |-
+      return id(phase_b_voltage).state * cos(id(phase_b_phase_angle).state / 180 * 3.1415) - id(phase_c_voltage).state * cos(id(phase_c_phase_angle).state / 180 * 3.1415);
+    id: phase_bc_real
+  
+  - platform: template
+    lambda: !lambda |-
+      return id(phase_b_voltage).state * sin(id(phase_b_phase_angle).state / 180 * 3.1415) - id(phase_c_voltage).state * sin(id(phase_c_phase_angle).state / 180 * 3.1415);
+    id: phase_bc_img
+  
+  - platform: template
+    lambda: !lambda |-
+      return sqrt( pow(id(phase_bc_real).state, 2) + pow(id(phase_bc_img).state, 2) );
+    id: phase_bc_mag
+
+  ##################### Phase AC Delta ########################
+  - platform: template
+    lambda: !lambda |-
+      return id(phase_a_voltage).state * cos(0) - id(phase_c_voltage).state * cos(id(phase_c_phase_angle).state / 180 * 3.1415);
+    id: phase_ac_real
+  
+  - platform: template
+    lambda: !lambda |-
+      return id(phase_a_voltage).state * sin(0) - id(phase_c_voltage).state * sin(id(phase_c_phase_angle).state / 180 * 3.1415);
+    id: phase_ac_img
+  
+  - platform: template
+    lambda: !lambda |-
+      return sqrt( pow(id(phase_ac_real).state, 2) + pow(id(phase_ac_img).state, 2) );
+    id: phase_ac_mag
+
+
+  - platform: template
+    lambda: !lambda |-
+      return max(0.0f, id(total_power).state -
+        id( cir1_b).state -
+        id( cir2_b).state -
+        id( cir3_b).state -
+        id( cir4_b).state -
+        id( cir5_b).state -
+        id( cir6_b).state -
+        id( cir7_b).state -
+        id( cir8_b).state -
+        id( cir9_b).state -
+        id(cir10_b).state -
+        id(cir11_b).state -
+        id(cir12_b).state -
+        id(cir13_b).state -
+        id(cir14_b).state -
+        id(cir15_b).state -
+        id(cir16_b).state);
+    update_interval: never   # will be updated after all power sensors update via on_update trigger
+    id: balance_power
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: "W"
+
+  - platform: total_daily_energy
+    name: "Balance Daily Energy"
+    power_id: balance_power
+    accuracy_decimals: 0
+    restore: false
+
+  - platform: template
+    name: "Total Power"
+    lambda: return id(phase_a_power).state + id(phase_b_power).state + id(phase_c_power).state;
+    update_interval: 1s
+    id: total_power
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: "W"
+
+  - platform: template
+    internal: false
+    name: "Total Circuits Power"
+    lambda: !lambda |-
+      return id( cir1_b).state +
+        id( cir2_b).state +
+        id( cir3_b).state +
+        id( cir4_b).state +
+        id( cir5_b).state +
+        id( cir6_b).state +
+        id( cir7_b).state +
+        id( cir8_b).state +
+        id( cir9_b).state +
+        id(cir10_b).state +
+        id(cir11_b).state +
+        id(cir12_b).state +
+        id(cir13_b).state +
+        id(cir14_b).state +
+        id(cir15_b).state +
+        id(cir16_b).state ;
+    update_interval: 1s
+    id: total_power_circuits
+    unit_of_measurement: "W"
+
+  - name: "Total Daily Energy"
+    power_id: total_power
+    platform: total_daily_energy
+    accuracy_decimals: 0
+    restore: false
+    unit_of_measurement: Wh
+    state_class: total_increasing
+    device_class: energy
+    filters: [ *throttle_energy ]
+
+  - { power_id:  cir1_b,  platform: total_daily_energy, accuracy_decimals: 0, restore: false, unit_of_measurement: "Wh", state_class: "total_increasing", device_class: "energy", filters: [ *throttle_energy ], name: "#1 Energy" }
+  - { power_id:  cir2_b,  platform: total_daily_energy, accuracy_decimals: 0, restore: false, unit_of_measurement: "Wh", state_class: "total_increasing", device_class: "energy", filters: [ *throttle_energy ], name: "#2 Energy" }
+  - { power_id:  cir3_b,  platform: total_daily_energy, accuracy_decimals: 0, restore: false, unit_of_measurement: "Wh", state_class: "total_increasing", device_class: "energy", filters: [ *throttle_energy ], name: "#3 Energy" }
+  - { power_id:  cir4_b,  platform: total_daily_energy, accuracy_decimals: 0, restore: false, unit_of_measurement: "Wh", state_class: "total_increasing", device_class: "energy", filters: [ *throttle_energy ], name: "#4 Energy" }
+  - { power_id:  cir5_b,  platform: total_daily_energy, accuracy_decimals: 0, restore: false, unit_of_measurement: "Wh", state_class: "total_increasing", device_class: "energy", filters: [ *throttle_energy ], name: "#5 Energy" }
+  - { power_id:  cir6_b,  platform: total_daily_energy, accuracy_decimals: 0, restore: false, unit_of_measurement: "Wh", state_class: "total_increasing", device_class: "energy", filters: [ *throttle_energy ], name: "#6 Energy" }
+  - { power_id:  cir7_b,  platform: total_daily_energy, accuracy_decimals: 0, restore: false, unit_of_measurement: "Wh", state_class: "total_increasing", device_class: "energy", filters: [ *throttle_energy ], name: "#7 Energy" }
+  - { power_id:  cir8_b,  platform: total_daily_energy, accuracy_decimals: 0, restore: false, unit_of_measurement: "Wh", state_class: "total_increasing", device_class: "energy", filters: [ *throttle_energy ], name: "#8 Energy" }
+  - { power_id:  cir9_b,  platform: total_daily_energy, accuracy_decimals: 0, restore: false, unit_of_measurement: "Wh", state_class: "total_increasing", device_class: "energy", filters: [ *throttle_energy ], name: "#9 Energy" }
+  - { power_id:  cir10_b, platform: total_daily_energy, accuracy_decimals: 0, restore: false, unit_of_measurement: "Wh", state_class: "total_increasing", device_class: "energy", filters: [ *throttle_energy ], name: "#10 Energy" }
+  - { power_id:  cir11_b, platform: total_daily_energy, accuracy_decimals: 0, restore: false, unit_of_measurement: "Wh", state_class: "total_increasing", device_class: "energy", filters: [ *throttle_energy ], name: "#11 Energy" }
+  - { power_id:  cir12_b, platform: total_daily_energy, accuracy_decimals: 0, restore: false, unit_of_measurement: "Wh", state_class: "total_increasing", device_class: "energy", filters: [ *throttle_energy ], name: "#12 Energy" }
+  - { power_id:  cir13_b, platform: total_daily_energy, accuracy_decimals: 0, restore: false, unit_of_measurement: "Wh", state_class: "total_increasing", device_class: "energy", filters: [ *throttle_energy ], name: "#13 Energy" }
+  - { power_id:  cir14_b, platform: total_daily_energy, accuracy_decimals: 0, restore: false, unit_of_measurement: "Wh", state_class: "total_increasing", device_class: "energy", filters: [ *throttle_energy ], name: "#14 Energy" }
+  - { power_id:  cir15_b, platform: total_daily_energy, accuracy_decimals: 0, restore: false, unit_of_measurement: "Wh", state_class: "total_increasing", device_class: "energy", filters: [ *throttle_energy ], name: "#15 Energy" }
+  - { power_id:  cir16_b, platform: total_daily_energy, accuracy_decimals: 0, restore: false, unit_of_measurement: "Wh", state_class: "total_increasing", device_class: "energy", filters: [ *throttle_energy ], name: "#16 Energy" }
+
+  - platform: wifi_signal # Reports the WiFi signal strength/RSSI in dB
+    name: "WiFi Signal dB"
+    id: wifi_signal_db
+    update_interval: 60s
+    entity_category: "diagnostic"
+
+  - platform: copy # Reports the WiFi signal strength in %
+    source_id: wifi_signal_db
+    name: "WiFi Signal Percent"
+    filters:
+      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
+    unit_of_measurement: "Signal %"
+    entity_category: "diagnostic"
+    device_class: ""

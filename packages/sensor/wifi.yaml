@@ -1,3 +1,0 @@
-sensor:
-  - platform: wifi_signal
-    name: ${device_name} WiFi Signal

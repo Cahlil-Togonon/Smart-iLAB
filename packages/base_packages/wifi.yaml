@@ -1,0 +1,26 @@
+wifi:
+  fast_connect: "${wifi_fast_connect}"
+  domain: "${dns_domain}"
+
+  networks:
+  - ssid: ${wifi_ssid_1}
+    password: ${wifi_ssid_1_password}
+    priority: 2.0
+  - ssid: ${wifi_ssid_2}
+    password: ${wifi_ssid_2_password}
+    priority: 1.0
+
+  use_address: ${use_address}
+  manual_ip:
+    static_ip: ${static_ip}
+    gateway: ${gateway}
+    subnet: ${subnet}
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    password: !secret wifi_password
+    ap_timeout: 1min
+  power_save_mode: none
+  reboot_timeout: 2min
+
+captive_portal:
