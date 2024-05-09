@@ -8,4 +8,8 @@ substitutions: # per device-specific substitutions (copy this only to the esphom
   esp_wifi_scan_internal: false         # set to false to show the full wifi scan results
 
 packages:
-  device_base: github://Cahlil-Togonon/Smart-iLAB/***   # add the correct path to the yaml file.
+  air_gradient:                                           # add meaningful package name
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB     # github repo
+    ref: main                                             # branch name
+    file: Air-Gradient/AG-one.yaml                        # file directory of device 
+    refresh: 5min                                         # refresh frequency to check for device updates
