@@ -3,4 +3,4 @@ web_server:
   ota: ${web_server_ota}
   auth:
     username: !secret web_server_username
-    username: !secret web_server_password
+    password: !secret web_server_password
