@@ -7,5 +7,12 @@ substitutions: # per device-specific substitutions (copy this only to the esphom
   web_server_ota: true                  # enable ota in the web server.
   esp_wifi_scan_internal: false         # set to false to show the full wifi scan results
 
+  wifi_ssid_1:          !secret wifi_ssid
+  wifi_ssid_1_password: !secret wifi_password
+  wifi_ssid_2:          !secret uly_wifi_ssid
+  wifi_ssid_2_password: !secret uly_wifi_password
+  gateway:              !secret gateway           # Set this to the IP address of the router. Often ends with .1
+  subnet:               !secret subnet            # The subnet of the network
+
 packages:
   device_base: github://Cahlil-Togonon/Smart-iLAB/***   # add the correct path to the yaml file.
