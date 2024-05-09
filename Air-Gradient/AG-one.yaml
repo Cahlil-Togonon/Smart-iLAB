@@ -14,7 +14,7 @@ esphome:
 
 # device base packages
 packages:
-  device_base: github://Cahlil-Togonon/Smart-iLAB/packages/device_base.yaml
+  device_base: github://Cahlil-Togonon/Smart-iLAB/packages/device_base.yaml@main
 
   # Air Gradient packages from MallocArray
   board: github://MallocArray/airgradient_esphome/packages/airgradient_esp32-c3_board.yaml
