@@ -18,7 +18,7 @@ packages:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
     file: packages/device_base.yaml
-    # refresh: 1min
+    refresh: 5min
   # wifi:             github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/wifi.yaml@main
   # api:              github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/api.yaml@main
   # ota:              github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/ota.yaml@main
