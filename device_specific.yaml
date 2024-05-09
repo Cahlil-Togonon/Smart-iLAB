@@ -14,5 +14,15 @@ substitutions: # per device-specific substitutions (copy this only to the esphom
   gateway:              !secret gateway           # Set this to the IP address of the router. Often ends with .1
   subnet:               !secret subnet            # The subnet of the network
 
+  dns_domain: ".local"                            # Define the domain for this device. example: .local (device will appear as xxx-xxxxx.local in DNS/DHCP logs)
+  wifi_fast_connect: "false"                      # Enables faster network connections, with last connected SSID being connected to and no full scan for SSID being undertaken
+  ap_timeout: 1min
+  power_save_mode: none
+  reboot_timeout: 2min
+  flash_write_interval: 10min
+
+  timezone: ""                                    # Set timezone of the device. Can be entered in unix Country/Area format (i.e. "Australia/Sydney")
+  esp_wifi_scan_internal: true                    # set to false to show the full wifi scan results
+
 packages:
   device_base: github://Cahlil-Togonon/Smart-iLAB/***   # add the correct path to the yaml file.

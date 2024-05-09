@@ -19,7 +19,7 @@ substitutions: # generic substitutions
 # preferences:
 #   flash_write_interval: ${flash_write_interval}
 
-packages: !extend
+packages:
   wifi:             github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/wifi.yaml
   api:              github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/api.yaml
   ota:              github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/ota.yaml
