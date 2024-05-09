@@ -19,7 +19,7 @@ packages:
   api:              github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/api.yaml@main
   ota:              github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/ota.yaml@main
   logger:           github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/logger.yaml@main
-  web_server:       github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/web_server.yaml@main
+  # web_server:       github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/web_server.yaml@main
   binary_sensor:    github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/binary_sensor.yaml@main
   sensor:           github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/sensor.yaml@main
   button:           github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/button.yaml@main
