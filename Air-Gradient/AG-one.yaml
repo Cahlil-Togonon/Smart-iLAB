@@ -14,17 +14,21 @@ esphome:
 
 # device base packages
 packages:
-  device_base:      github://Cahlil-Togonon/Smart-iLAB/packages/device_base.yaml@main
-  wifi:             github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/wifi.yaml@main
-  api:              github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/api.yaml@main
-  ota:              github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/ota.yaml@main
-  logger:           github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/logger.yaml@main
+  device_base:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/device_base.yaml
+    refresh: 1min
+  # wifi:             github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/wifi.yaml@main
+  # api:              github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/api.yaml@main
+  # ota:              github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/ota.yaml@main
+  # logger:           github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/logger.yaml@main
   # web_server:       github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/web_server.yaml@main
-  binary_sensor:    github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/binary_sensor.yaml@main
-  sensor:           github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/sensor.yaml@main
-  button:           github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/button.yaml@main
-  text_sensor:      github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/text_sensor.yaml@main
-  time:             github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/time.yaml@main
+  # binary_sensor:    github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/binary_sensor.yaml@main
+  # sensor:           github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/sensor.yaml@main
+  # button:           github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/button.yaml@main
+  # text_sensor:      github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/text_sensor.yaml@main
+  # time:             github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/time.yaml@main
 
   # Air Gradient packages from MallocArray
   board: github://MallocArray/airgradient_esphome/packages/airgradient_esp32-c3_board.yaml
