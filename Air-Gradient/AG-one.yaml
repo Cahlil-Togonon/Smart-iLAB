@@ -14,17 +14,7 @@ esphome:
 
 # device base packages
 packages:
-  # device_base:      github://Cahlil-Togonon/Smart-iLAB/packages/device_base.yaml
-  wifi:             github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/wifi.yaml
-  api:              github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/api.yaml
-  ota:              github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/ota.yaml
-  logger:           github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/logger.yaml
-  web_server:       github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/web_server.yaml
-  binary_sensor:    github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/binary_sensor.yaml
-  sensor:           github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/sensor.yaml
-  button:           github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/button.yaml
-  text_sensor:      github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/text_sensor.yaml
-  time:             github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/time.yaml
+  device_base: github://Cahlil-Togonon/Smart-iLAB/packages/device_base.yaml
 
   # Air Gradient packages from MallocArray
   board: github://MallocArray/airgradient_esphome/packages/airgradient_esp32-c3_board.yaml
