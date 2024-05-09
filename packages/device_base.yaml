@@ -1,6 +1,4 @@
 substitutions: # generic substitutions
-  repository: github://Cahlil-Togonon/Smart-iLAB
-  
   dns_domain: ".local"                            # Define the domain for this device. example: .local (device will appear as xxx-xxxxx.local in DNS/DHCP logs)
   wifi_fast_connect: "false"                      # Enables faster network connections, with last connected SSID being connected to and no full scan for SSID being undertaken
   wifi_ssid_1:          !secret wifi_ssid
@@ -28,13 +26,13 @@ substitutions: # generic substitutions
 #   flash_write_interval: ${flash_write_interval}
 
 packages:
-  wifi:             ${repository}/packages/base_packages/wifi.yaml
-  api:              ${repository}/packages/base_packages/api.yaml
-  ota:              ${repository}/packages/base_packages/ota.yaml
-  logger:           ${repository}/packages/base_packages/logger.yaml
-  web_server:       ${repository}/packages/base_packages/web_server.yaml
-  binary_sensor:    ${repository}/packages/base_packages/binary_sensor.yaml
-  sensor:           ${repository}/packages/base_packages/sensor.yaml
-  button:           ${repository}/packages/base_packages/button.yaml
-  text_sensor:      ${repository}/packages/base_packages/text_sensor.yaml
-  time:             ${repository}/packages/base_packages/time.yaml
+  wifi:             github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/wifi.yaml
+  api:              github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/api.yaml
+  ota:              github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/ota.yaml
+  logger:           github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/logger.yaml
+  web_server:       github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/web_server.yaml
+  binary_sensor:    github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/binary_sensor.yaml
+  sensor:           github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/sensor.yaml
+  button:           github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/button.yaml
+  text_sensor:      github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/text_sensor.yaml
+  time:             github://Cahlil-Togonon/Smart-iLAB/packages/base_packages/time.yaml
