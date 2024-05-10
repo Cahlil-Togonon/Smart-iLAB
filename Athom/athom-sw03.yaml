@@ -19,7 +19,7 @@ esp8266:
   restore_from_flash: true
 
 preferences:
-  flash_write_interval: 1min
+  flash_write_interval: 5min
 
 # logger:
 #   baud_rate: 0
