@@ -14,10 +14,10 @@ sensor:
     unit_of_measurement: "%"
     entity_category: diagnostic
 
-  - platform: internal_temperature
-    name: "ESP Temperature"
-    id: sys_esp_temperature
-    entity_category: "diagnostic"
+  # - platform: internal_temperature
+  #   name: "ESP Temperature"
+  #   id: sys_esp_temperature
+  #   entity_category: "diagnostic"
 
   - platform: uptime
     name: Uptime
