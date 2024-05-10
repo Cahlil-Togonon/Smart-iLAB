@@ -31,49 +31,49 @@ packages:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
     file: packages/base_packages/wifi.yaml
-    # refresh: 1min
+    refresh: 5min
   api:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
     file: packages/base_packages/api.yaml
-    # refresh: 1min
+    refresh: 5min
   ota:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
     file: packages/base_packages/ota.yaml
-    # refresh: 1min
+    refresh: 5min
   logger:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
     file: packages/base_packages/logger.yaml
-    # refresh: 1min
+    refresh: 5min
   web_server:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
     file: packages/base_packages/web_server.yaml
-    # refresh: 1min
+    refresh: 5min
   binary_sensor:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
     file: packages/base_packages/binary_sensor.yaml
-    # refresh: 1min
+    refresh: 5min
   sensor:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
     file: packages/base_packages/sensor.yaml
-    # refresh: 1min
+    refresh: 5min
   button:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
     file: packages/base_packages/button.yaml
-    # refresh: 1min
+    refresh: 5min
   text_sensor:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
     file: packages/base_packages/text_sensor.yaml
-    # refresh: 1min
+    refresh: 5min
   time:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
     file: packages/base_packages/time.yaml
-    # refresh: 1min
+    refresh: 5min
