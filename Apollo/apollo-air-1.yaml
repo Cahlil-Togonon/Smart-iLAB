@@ -24,11 +24,13 @@ esp32:
   framework:
     type: arduino
 
-
-# device base packages
 packages:
-  device_base: github://Cahlil-Togonon/Smart-iLAB/packages/device_base.yaml
-
+  # device base packages
+  device_base:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/device_base.yaml
+    refresh: 5min
 
 globals:
   - id: cycleCounter

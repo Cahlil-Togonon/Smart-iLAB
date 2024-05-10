@@ -24,10 +24,13 @@ preferences:
 # dashboard_import:
 #   package_import_url: github://athom-tech/athom-configs/athom-presence-sensor.yaml
 
-# device base packages
 packages:
-  device_base: github://Cahlil-Togonon/Smart-iLAB/packages/device_base.yaml
-
+  # device base packages
+  device_base:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/device_base.yaml
+    refresh: 5min
 
 light:
   - platform: status_led

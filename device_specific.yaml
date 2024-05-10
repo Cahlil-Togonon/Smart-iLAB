@@ -1,11 +1,11 @@
 substitutions: # per device-specific substitutions (copy this only to the esphome web ui)
   static_ip:                            # set to the target ip address of the device
-  use_address: ${static_ip}             # set to the current ip address of the device for OTA flashing
+  use_address:                          # set to the current ip address of the device for OTA flashing
   api_key:
   ota_password: !secret ota_password
-  log_level: none
+  log_level: DEBUG
   web_server_ota: true                  # enable ota in the web server.
-  esp_wifi_scan_internal: false         # set to false to show the full wifi scan results
+  esp_wifi_scan_internal: true          # set to false to show the full wifi scan results
 
 packages:
   air_gradient:                                           # add meaningful package name
