@@ -445,11 +445,6 @@ light:
     
 
 button:
-  - platform: restart
-    id: reboot
-    icon: mdi:power-cycle
-    name: "Reboot device"
-
   - platform: factory_reset
     disabled_by_default: True
     name: "Factory Reset ESP"
