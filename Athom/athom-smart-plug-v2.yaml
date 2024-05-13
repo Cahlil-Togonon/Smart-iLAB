@@ -37,6 +37,9 @@ packages:
     file: packages/device_base.yaml
     refresh: 5min
 
+logger:
+  baud_rate: 0
+
 uart:
   rx_pin: RX
   baud_rate: 4800
