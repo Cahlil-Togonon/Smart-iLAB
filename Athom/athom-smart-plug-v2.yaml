@@ -8,7 +8,7 @@ substitutions:
   project_version: "2.0.1"
   relay_restore_mode: RESTORE_DEFAULT_OFF
   sensor_update_interval: 5s
-  sensor_accuracy_decimals: "5"
+  sensor_accuracy_decimals: "3"
   # Current Limit in Amps. AU Plug = 10. IL, BR, EU, UK, US Plug = 16.
   current_limit : "16"
   
@@ -48,10 +48,6 @@ globals:
     initial_value: '0.0'
 
 binary_sensor:
-  - platform: status
-    name: "Status"
-    entity_category: diagnostic    
-
   - platform: gpio
     pin:
       number: 5
@@ -71,28 +67,6 @@ binary_sensor:
           - button.press: Reset
 
 sensor:
-  - platform: uptime
-    name: "Uptime Sensor"
-    id: uptime_sensor
-    entity_category: diagnostic
-    internal: true
-
-  - platform: wifi_signal
-    name: "WiFi Signal"
-    id: wifi_signal_db
-    update_interval: 60s
-    entity_category: diagnostic
-    internal: true
-
-  # Reports the WiFi signal strength in %
-  - platform: copy
-    source_id: wifi_signal_db
-    name: "WiFi Strength"
-    filters:
-      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
-    unit_of_measurement: "%"
-    entity_category: diagnostic
-
   - platform: cse7766
     current:
       name: "Current"
@@ -159,10 +133,6 @@ sensor:
       - multiply: 0.001
 
 button:
-  - platform: restart
-    name: "Restart"
-    entity_category: config
-
   - platform: factory_reset
     name: "Factory Reset"
     id: Reset

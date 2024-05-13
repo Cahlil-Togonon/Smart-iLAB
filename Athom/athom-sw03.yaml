@@ -33,10 +33,6 @@ packages:
     refresh: 5min
 
 binary_sensor:
-  - platform: status
-    name: "Status"
-    entity_category: diagnostic
-
   # Touch Buttons
   - platform: gpio
     pin:
