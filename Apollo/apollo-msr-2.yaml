@@ -37,6 +37,16 @@ esp32:
   framework:
     type: esp-idf
 
+
+packages:
+  # device base packages
+  device_base:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/device_base.yaml
+    refresh: 5min
+
+
 globals:
   - id: button_press_timestamp
     restore_value: no

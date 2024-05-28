@@ -33,6 +33,16 @@ esp32:
   framework:
     type: esp-idf
 
+
+packages:
+  # device base packages
+  device_base:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/device_base.yaml
+    refresh: 5min
+
+
 external_components:
   - source: github://pr#5674
     components: [ ld2450 ]
