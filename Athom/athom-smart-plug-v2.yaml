@@ -141,10 +141,10 @@ button:
     id: Reset
     entity_category: config
 
-  - platform: safe_mode
-    name: "Safe Mode"
-    internal: false
-    entity_category: config
+  # - platform: safe_mode
+  #   name: "Safe Mode"
+  #   internal: false
+  #   entity_category: config
 
 switch:
   - platform: gpio
