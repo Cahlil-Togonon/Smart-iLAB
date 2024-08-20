@@ -34,7 +34,7 @@ packages:
   config_button: github://MallocArray/airgradient_esphome/packages/config_button.yaml
   wifi_sensor: github://MallocArray/airgradient_esphome/packages/sensor_wifi.yaml
   uptime: github://MallocArray/airgradient_esphome/packages/sensor_uptime.yaml
-  # safe_mode: github://MallocArray/airgradient_esphome/packages/switch_safe_mode.yaml
+  safe_mode: github://MallocArray/airgradient_esphome/packages/switch_safe_mode.yaml
 
 binary_sensor:
   - id: !extend config_button
