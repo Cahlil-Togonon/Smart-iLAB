@@ -87,9 +87,9 @@ button:
     name: "Reset"
     id: Reset
 
-  - platform: safe_mode
-    name: "Safe Mode"
-    internal: false
+  # - platform: safe_mode
+  #   name: "Safe Mode"
+  #   internal: false
 
 output:
   # Relays
