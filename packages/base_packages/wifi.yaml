@@ -5,7 +5,7 @@ wifi:
   networks:
   - ssid: ${wifi_ssid_1}
     password: ${wifi_ssid_1_password}
-    bssid: ${wifi_bssid_1}
+    # bssid: ${wifi_bssid_1}
     priority: 2.0
   - ssid: ${wifi_ssid_2}
     password: ${wifi_ssid_2_password}
