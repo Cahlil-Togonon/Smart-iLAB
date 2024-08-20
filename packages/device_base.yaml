@@ -38,6 +38,11 @@ packages:
     ref: main
     file: packages/base_packages/api.yaml
     refresh: 5min
+  safe_mode:
+    url: https://github.com/Cahlil-Togonon/Smart-iLAB
+    ref: main
+    file: packages/base_packages/safe_mode.yaml
+    refresh: 5min
   ota:
     url: https://github.com/Cahlil-Togonon/Smart-iLAB
     ref: main
