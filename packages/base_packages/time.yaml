@@ -1,12 +1,6 @@
 #substitutions:
   #time_platform: homeassistant
 
-globals:
-  - id: current_timestamp
-    type: std::string
-    restore_value: false
-    initial_value: ""
-
 time:
   #- platform: ${time_platform}
   - platform: sntp
