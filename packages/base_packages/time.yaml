@@ -1,6 +1,12 @@
 #substitutions:
   #time_platform: homeassistant
 
+globals:
+  - id: current_timestamp
+    type: std::string
+    restore_value: false
+    initial_value: ""
+
 time:
   #- platform: ${time_platform}
   - platform: sntp
@@ -12,6 +18,11 @@ time:
   # Publish the time the device was last restarted
     on_time_sync:
       then:
+        - lambda: |-
+            char buf[32];
+            strftime(buf, sizeof(buf), "%a %d %b %Y - %I:%M:%S %p", &id(sntp_time).now());
+            id(current_timestamp) = std::string(buf);
+
         # Update last restart time, but only once.
         - if:
             condition:
@@ -19,5 +30,6 @@ time:
             then:
               - text_sensor.template.publish:
                   id: device_last_restart
-                  state: !lambda 'return id(sntp_time).now().strftime("%a %d %b %Y - %I:%M:%S %p");'
+                  # state: !lambda 'return id(sntp_time).now().strftime("%a %d %b %Y - %I:%M:%S %p");'
+                  state: !lambda 'return id(current_timestamp);'
 
