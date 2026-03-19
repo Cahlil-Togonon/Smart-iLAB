@@ -16,8 +16,8 @@ wifi:
     static_ip: ${static_ip}
     gateway: ${gateway}
     subnet: ${subnet}
-    dns1: ${dns1}
-    dns2: ${dns2}
+    # dns1: ${dns1}
+    # dns2: ${dns2}
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:

@@ -6,8 +6,8 @@ substitutions: # generic substitutions
   wifi_ssid_2_password: !secret uly_wifi_password
   gateway:              !secret gateway           # Set this to the IP address of the router. Often ends with .1
   subnet:               !secret subnet            # The subnet of the network
-  dns1:                 !secret dns1
-  dns2:                 !secret dns2
+  # dns1:                 !secret dns1
+  # dns2:                 !secret dns2
 
   dns_domain: ".local"                            # Define the domain for this device. example: .local (device will appear as xxx-xxxxx.local in DNS/DHCP logs)
   wifi_fast_connect: "false"                      # Enables faster network connections, with last connected SSID being connected to and no full scan for SSID being undertaken
