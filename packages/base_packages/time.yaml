@@ -1,8 +1,8 @@
-substitutions:
-  time_platform: homeassistant
+#substitutions:
+  #time_platform: homeassistant
 
 time:
-  - platform: ${time_platform}
+  #- platform: ${time_platform}
   - platform: sntp
     id: sntp_time
   # Define the timezone of the device
