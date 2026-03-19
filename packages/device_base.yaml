@@ -80,8 +80,8 @@ packages:
     ref: main
     file: packages/base_packages/text_sensor.yaml
     refresh: 5min
-  time:
-    url: https://github.com/Cahlil-Togonon/Smart-iLAB
-    ref: main
-    file: packages/base_packages/time.yaml
-    refresh: 5min
+  # time:
+  #   url: https://github.com/Cahlil-Togonon/Smart-iLAB
+  #   ref: main
+  #   file: packages/base_packages/time.yaml
+  #   refresh: 5min
