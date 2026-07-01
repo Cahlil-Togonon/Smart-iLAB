@@ -1,6 +1,6 @@
 web_server:
   port: 80
-  ota: ${web_server_ota}
+  #ota: ${web_server_ota} #OTA under web_server no longer supported
   auth:
     username: !secret web_server_username
     password: !secret web_server_password
